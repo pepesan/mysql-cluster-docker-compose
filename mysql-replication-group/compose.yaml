@@ -95,7 +95,7 @@ services:
       - MYSQL_ROOT_HOST=%
       - MYSQL_DATABASE=test
       - MYSQL_USER=test
-      - MYSQL_PASSWORD=test
+        - MYSQL_PASSWORD=test
     command: ["mysqld",
       "--server-id=3",
       "--log-bin=mysql-bin-3.log",

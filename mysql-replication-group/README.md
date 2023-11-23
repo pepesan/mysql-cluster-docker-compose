@@ -23,14 +23,17 @@ do docker compose exec node$N mysql -uroot -proot \
 -e "SHOW VARIABLES WHERE Variable_name = 'hostname';" \
 -e "SELECT * FROM performance_schema.replication_group_members;"
 done
+## Colocarlo en modo multi primary
+docker compose exec node1 mysql -uroot -proot \
+-e "SELECT group_replication_switch_to_multi_primary_mode();"
+
 ## Create haproxy user
-for N in 1 2 3
-do docker compose exec node$N mysql -uroot -proot \
+docker compose exec node1 mysql -uroot -proot \
 -e "CREATE USER 'haproxy_user'@'%' IDENTIFIED BY '';" \
 -e "ALTER USER 'haproxy_user'@'%' IDENTIFIED WITH mysql_native_password BY '';" \
 -e "GRANT ALL PRIVILEGES ON *.* TO 'haproxy_user'@'%' WITH GRANT OPTION;" \
 -e "FLUSH PRIVILEGES;"
-done
+
 
 
 #### via consola
@@ -48,6 +51,7 @@ done
 docker compose exec node1 mysql -uroot -proot \
 -e "CREATE USER 'access'@'%' IDENTIFIED BY 'access';" \
 -e "GRANT ALL PRIVILEGES ON *.* TO 'test'@'%' WITH GRANT OPTION;" \
+-e "ALTER USER 'access'@'%' IDENTIFIED WITH mysql_native_password BY 'access';" \
 -e "FLUSH PRIVILEGES;"
 
 ## Comprobamos los privilegios en cada nodo
