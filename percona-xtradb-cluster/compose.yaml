@@ -1,0 +1,48 @@
+version: "3.3"
+services:
+  pxc-node1:
+    environment:
+      - MYSQL_ROOT_PASSWORD=test1234#
+      - CLUSTER_NAME=pxc-cluster1
+    container_name: pxc-node1
+    volumes:
+      - ./cert:/cert
+      - ./config:/etc/percona-xtradb-cluster.conf.d
+    image: percona/percona-xtradb-cluster:8.0
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20
+  pxc-node2:
+    environment:
+      - MYSQL_ROOT_PASSWORD=test1234#
+      - CLUSTER_NAME=pxc-cluster1
+      - CLUSTER_JOIN=pxc-node2
+    container_name: pxc-node2
+    volumes:
+      - ./cert:/cert
+      - ./config:/etc/percona-xtradb-cluster.conf.d
+    image: percona/percona-xtradb-cluster:8.0
+    depends_on:
+      - pxc-node1
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20
+  pxc-node3:
+    environment:
+      - MYSQL_ROOT_PASSWORD=test1234#
+      - CLUSTER_NAME=pxc-cluster1
+      - CLUSTER_JOIN=pxc-node1
+    container_name: pxc-node3
+    volumes:
+      - ./cert:/cert
+      - ./config:/etc/percona-xtradb-cluster.conf.d
+    image: percona/percona-xtradb-cluster:8.0
+    depends_on:
+      - pxc-node1
+      - pxc-node2
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20
