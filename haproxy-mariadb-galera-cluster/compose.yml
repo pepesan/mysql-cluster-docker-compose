@@ -11,11 +11,11 @@ services:
       NODE_NAME: node1-mariadb
       CLUSTER_NAME: maria_cluster
       CLUSTER_ADDRESS: gcomm://
-      TZ : 'Asia/Seoul'
+      TZ : 'Europa/Madrid'
     ports:
       - 13306:3306/tcp
     volumes:
-      - ./galeranode1/mariadb:/var/lib/mysql
+      - ./volumes/galeranode1/mariadb:/var/lib/mysql
       - ./sqldir:/docker-entrypoint-initdb.d
     command:
       --wait_timeout=28800
@@ -45,11 +45,11 @@ services:
       NODE_NAME: node2-mariadb
       CLUSTER_NAME: maria_cluster
       CLUSTER_ADDRESS: gcomm://node1-mariadb
-      TZ : 'Asia/Seoul'
+      TZ : 'Europa/Madrid'
     ports:
       - 23306:3306/tcp
     volumes:
-      - ./galeranode2/mariadb:/var/lib/mysql
+      - ./volumes/galeranode2/mariadb:/var/lib/mysql
     command:
       --wait_timeout=28800
       --character-set-server=utf8
@@ -78,11 +78,11 @@ services:
       NODE_NAME: node3-mariadb
       CLUSTER_NAME: maria_cluster
       CLUSTER_ADDRESS: gcomm://node1-mariadb
-      TZ : 'Asia/Seoul'
+      TZ : 'Europa/Madrid'
     ports:
       - 33306:3306/tcp
     volumes:
-      - ./galeranode3/mariadb:/var/lib/mysql
+      - ./volumes/galeranode3/mariadb:/var/lib/mysql
     command:
       --wait_timeout=28800
       --character-set-server=utf8
@@ -95,3 +95,15 @@ services:
     depends_on:
       - node1-mariadb
       - node2-mariadb
+  haproxy:
+    container_name: haproxy_mysql
+    volumes:
+      - ./config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 2999:2999 # interfaz web /stats
+      - 3306:3306 #lectura/escritura
+    image: haproxytech/haproxy-ubuntu:latest
+    depends_on:
+      - node1-mariadb
+      - node2-mariadb
+      - node3-mariadb

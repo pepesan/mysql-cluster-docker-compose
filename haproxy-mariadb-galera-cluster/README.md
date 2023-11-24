@@ -11,7 +11,7 @@ Data can be changed on all nodes, Active-Active multi-master configuration - rea
 
 1.Galera Cluster container starting 
 ```shell
-docker-compose  -f ./docker-compose.yml up -d
+docker-compose  -f ./compose.yml up -d
 ```
 
 2.Galera Cluster Creates a database user in mysql schema and app schema within the node1 container.
@@ -19,7 +19,7 @@ docker-compose  -f ./docker-compose.yml up -d
 
  It is necessary to enter the container of node 1 and execute the volume-linked account file in advance as a shell.
 ```shell
-> docker exec -it node1-mariadb /bin/bash
+> docker compose exec node1-mariadb /bin/bash
 > cd /docker-entrypoint-initdb.d/
 > ./migration.sh root iamgroot mysql ./create_user.sql
 ```
@@ -34,7 +34,7 @@ docker-compose  -f ./docker-compose.yml up -d
 ```shell
 show status like 'wsrep_%';
 
-show status like  'wsrep_incoming_addresses'
+show status like  'wsrep_incoming_addresses';
 ```
 
 
