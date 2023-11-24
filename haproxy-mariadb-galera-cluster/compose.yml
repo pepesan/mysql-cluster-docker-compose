@@ -6,6 +6,7 @@ services:
     container_name: node1-mariadb
     environment:
       MYSQL_ROOT_PASSWORD: 'iamgroot'
+      MYSQL_ROOT_HOST: '%'
       REPLICATION_PASSWORD: 'iamgroot'
       GALERA: 'On'
       NODE_NAME: node1-mariadb

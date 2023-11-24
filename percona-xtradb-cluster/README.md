@@ -29,7 +29,8 @@ docker run -d \
 --net=pxc-network \
 -v ./cert:/cert \
 -v ./config:/etc/percona-xtradb-cluster.conf.d \
-percona/percona-xtradb-cluster:8.0#### Montamos el segundo nodo
+percona/percona-xtradb-cluster:8.0
+#### Montamos el segundo nodo
 docker run -d \
 -e MYSQL_ROOT_PASSWORD=test1234# \
 -e CLUSTER_NAME=pxc-cluster1 \

@@ -43,11 +43,11 @@ services:
       - mysql-server-3
       - mysql-shell
     restart: on-failure
-  dbwebapp:
-    env_file:
-      - dbwebapp.env
-    image: neumayer/dbwebapp
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mysql-router
+#  dbwebapp:
+#    env_file:
+#      - dbwebapp.env
+#    image: neumayer/dbwebapp
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - mysql-router
