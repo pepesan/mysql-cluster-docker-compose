@@ -15,3 +15,7 @@ shell.connect('root:mysql@mysql-server-1:3306')
 ## Vemos la configuración del cluster
 var cluster = dba.getCluster()
 cluster.status()
+
+## Nos salimos de la shell
+\exit
+
