@@ -63,10 +63,72 @@ for i in {1..6}; do mysql -h 127.0.0.1 -P 3306 -u testuser -piamgroot -N -s -e "
 ```
 
 ## prueba de failover (pendiente)
-Paramos el nodo
-```shell
-docker compose stop node1-mariadb
+Modificamos el compose.yaml para cambiar la config del nodo 2
+```yaml
+      command:
+        - "mariadbd"
+        - "--wsrep-on=ON"
+        - "--wsrep-provider=/usr/lib/galera/libgalera_smm.so"
+        - "--wsrep-cluster-address=gcomm://node1-mariadb,node2-mariadb,node3-mariadb"
+        - "--wsrep-cluster-name=maria_cluster"
+        - "--wsrep-node-name=node2-mariadb"
+        - "--binlog-format=ROW"
+        - "--innodb-autoinc-lock-mode=2"
 ```
+
+docker compose up -d node2-mariadb
+
+Desde el nodo 2, confirmamos el estado del cluster
+
+docker exec -it node2-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+
+Modificamos el compose.yaml para cambiar la config del nodo 3
+```yaml
+      command:
+        - "mariadbd"
+        - "--wsrep-on=ON"
+        - "--wsrep-provider=/usr/lib/galera/libgalera_smm.so"
+        - "--wsrep-cluster-address=gcomm://node1-mariadb,node2-mariadb,node3-mariadb"
+        - "--wsrep-cluster-name=maria_cluster"
+        - "--wsrep-node-name=node2-mariadb"
+        - "--binlog-format=ROW"
+        - "--innodb-autoinc-lock-mode=2"
+```
+
+docker compose up -d node3-mariadb
+
+Desde el nodo 3, confirmamos el estado del cluster
+
+docker exec -it node3-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+
+
+Modificamos el compose.yaml para cambiar la config del nodo 1
+```yaml
+    command:
+      - "mariadbd"
+      - "--wsrep-on=ON"
+      - "--wsrep-provider=/usr/lib/galera/libgalera_smm.so"
+      - "--wsrep-cluster-address=gcomm://node1-mariadb,node2-mariadb,node3-mariadb"
+      - "--wsrep-cluster-name=maria_cluster"
+      - "--wsrep-node-name=node1-mariadb"
+      - "--binlog-format=ROW"
+      - "--innodb-autoinc-lock-mode=2"
+```
+
+Evitamos que falle en el arranque
+```shell
+docker run --rm -v $(pwd)/volumes/galeranode1/mariadb:/var/lib/mysql busybox sed -i 's/safe_to_bootstrap: 0/safe_to_bootstrap: 1/' /var/lib/mysql/grastate.dat
+```
+
+Volvemos a arrancar el nodo 1
+```shell
+docker compose up -d node1-mariadb
+```
+
+Desde el nodo 1, confirmamos el estado del cluster
+
+docker exec -it node1-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+
 
 Probamos acceder desde el nodo 2 para mirar el estado del cluster
 ```shell
@@ -76,7 +138,7 @@ docker exec -it node2-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsr
 +--------------------+-------+
 | Variable_name      | Value |
 +--------------------+-------+
-| wsrep_cluster_size | 2     |
+| wsrep_cluster_size |3     |
 +--------------------+-------+
 
 ## metemos un dato nuevo desde HAProxy
@@ -84,23 +146,18 @@ docker exec -it node2-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsr
 mysql -h 127.0.0.1 -P 3306 -u testuser -piamgroot -D MODEL -e "INSERT INTO API (id, name, symbol, rank) VALUES ('polkadot', 'Polkadot', 'DOT', 12);"
 ```
 
-## Recuperamos el nodo
+## comprobamos que se ha insertado en node1
 ```shell
-docker compose start node1-mariadb
+docker exec -it node1-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
 ```
-
-Probamos acceder desde el nodo 2 para mirar el estado del cluster
+## comprobamos que se ha insertado en node2
 ```shell
-docker exec -it node2-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+docker exec -it node2-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
 ```
-+--------------------+-------+
-| Variable_name      | Value |
-+--------------------+-------+
-| wsrep_cluster_size | 2     |
-+--------------------+-------+
-
-
-
+## comprobamos que se ha insertado en node3
+```shell
+docker exec -it node3-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
+```
 
 
 
