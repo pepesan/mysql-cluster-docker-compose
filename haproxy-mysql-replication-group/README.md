@@ -89,7 +89,7 @@ done
 
 ### Metemos los Datos de ejemplo 
 
-Accedermos a al nodo 1
+Accedemos a al nodo 1
 
 docker compose exec node1 mysql -uroot -proot
 ```sql
