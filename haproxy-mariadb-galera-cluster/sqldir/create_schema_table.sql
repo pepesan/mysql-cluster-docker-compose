@@ -1,4 +1,6 @@
-
+-- 1. PRIMERO crear el esquema y usarlo
+CREATE SCHEMA IF NOT EXISTS `MODEL` DEFAULT CHARACTER SET utf8;
+USE `MODEL`;
 
 -- -----------------------------------------------------
 -- Table `MODEL`.`API`

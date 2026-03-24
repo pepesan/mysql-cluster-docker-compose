@@ -1,109 +1,82 @@
-version: '2'
 services:
   node1-mariadb:
-    image: hauptmedia/mariadb:10.1
+    image: mariadb:10.11
     hostname: node1-mariadb
     container_name: node1-mariadb
+    privileged: true
     environment:
-      MYSQL_ROOT_PASSWORD: 'iamgroot'
-      MYSQL_ROOT_HOST: '%'
-      REPLICATION_PASSWORD: 'iamgroot'
-      GALERA: 'On'
-      NODE_NAME: node1-mariadb
-      CLUSTER_NAME: maria_cluster
-      CLUSTER_ADDRESS: gcomm://
-      TZ : 'Europa/Madrid'
+      MARIADB_ROOT_PASSWORD: 'iamgroot'
+      MARIADB_DATABASE: 'MODEL'
     ports:
-      - 13306:3306/tcp
+      - 13306:3306
     volumes:
       - ./volumes/galeranode1/mariadb:/var/lib/mysql
       - ./sqldir:/docker-entrypoint-initdb.d
+    # Usamos command para activar el plugin, pero las variables para el setup inicial
     command:
-      --wait_timeout=28800
-      --character-set-server=utf8
-      --collation-server=utf8_general_ci
-      --max-allowed-packet=512M
-      --net-buffer-length=5048576
-      --wsrep-new-cluster
-    stdin_open: true
-    tty: true
-    privileged: true
-    ulimits:
-      nofile:
-        soft: 600000
-        hard: 640000
-
+      - "mariadbd"
+      - "--wsrep-on=ON"
+      - "--wsrep-provider=/usr/lib/galera/libgalera_smm.so"
+      - "--wsrep-cluster-address=gcomm://" # El primero arranca el cluster
+      - "--wsrep-cluster-name=maria_cluster"
+      - "--wsrep-node-name=node1-mariadb"
+      - "--binlog-format=ROW"
+      - "--innodb-autoinc-lock-mode=2"
 
   node2-mariadb:
-    image: hauptmedia/mariadb:10.1
+    image: mariadb:10.11
     hostname: node2-mariadb
     container_name: node2-mariadb
-    links:
+    privileged: true
+    depends_on:
       - node1-mariadb
     environment:
-      REPLICATION_PASSWORD: 'iamgroot'
-      GALERA: 'On'
-      NODE_NAME: node2-mariadb
-      CLUSTER_NAME: maria_cluster
-      CLUSTER_ADDRESS: gcomm://node1-mariadb
-      TZ : 'Europa/Madrid'
+      MARIADB_ROOT_PASSWORD: 'iamgroot'
     ports:
-      - 23306:3306/tcp
+      - 23306:3306
     volumes:
       - ./volumes/galeranode2/mariadb:/var/lib/mysql
     command:
-      --wait_timeout=28800
-      --character-set-server=utf8
-      --collation-server=utf8_general_ci
-      --max-allowed-packet=512M
-      --net-buffer-length=5048576
-    stdin_open: true
-    tty: true
+      - "mariadbd"
+      - "--wsrep-on=ON"
+      - "--wsrep-provider=/usr/lib/galera/libgalera_smm.so"
+      - "--wsrep-cluster-address=gcomm://node1-mariadb"
+      - "--wsrep-cluster-name=maria_cluster"
+      - "--wsrep-node-name=node2-mariadb"
+      - "--binlog-format=ROW"
+      - "--innodb-autoinc-lock-mode=2"
+
+  node3-mariadb:
+    image: mariadb:10.11
+    hostname: node3-mariadb
+    container_name: node3-mariadb
     privileged: true
     depends_on:
       - node1-mariadb
-    ulimits:
-      nofile:
-        soft: 600000
-        hard: 640000
-
-  node3-mariadb:
-    image: hauptmedia/mariadb:10.1
-    hostname: node3-mariadb
-    container_name: node3-mariadb
-    links:
-      - node1-mariadb
     environment:
-      REPLICATION_PASSWORD: 'iamgroot'
-      GALERA: 'On'
-      NODE_NAME: node3-mariadb
-      CLUSTER_NAME: maria_cluster
-      CLUSTER_ADDRESS: gcomm://node1-mariadb
-      TZ : 'Europa/Madrid'
+      MARIADB_ROOT_PASSWORD: 'iamgroot'
     ports:
-      - 33306:3306/tcp
+      - 33306:3306
     volumes:
       - ./volumes/galeranode3/mariadb:/var/lib/mysql
     command:
-      --wait_timeout=28800
-      --character-set-server=utf8
-      --collation-server=utf8_general_ci
-      --max-allowed-packet=512M
-      --net-buffer-length=5048576
-    stdin_open: true
-    tty: true
-    privileged: true
-    depends_on:
-      - node1-mariadb
-      - node2-mariadb
+      - "mariadbd"
+      - "--wsrep-on=ON"
+      - "--wsrep-provider=/usr/lib/galera/libgalera_smm.so"
+      - "--wsrep-cluster-address=gcomm://node1-mariadb"
+      - "--wsrep-cluster-name=maria_cluster"
+      - "--wsrep-node-name=node3-mariadb"
+      - "--binlog-format=ROW"
+      - "--innodb-autoinc-lock-mode=2"
+
   haproxy:
+    image: haproxytech/haproxy-ubuntu:latest
     container_name: haproxy_mysql
     volumes:
       - ./config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
-      - 2999:2999 # interfaz web /stats
-      - 3306:3306 #lectura/escritura
-    image: haproxytech/haproxy-ubuntu:latest
+      - 2999:2999
+      - 3306:3306
     depends_on:
       - node1-mariadb
       - node2-mariadb

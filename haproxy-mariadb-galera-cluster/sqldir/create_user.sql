@@ -1,11 +1,10 @@
-create user 'testuser'@'%' identified by 'iamgroot';
-create user 'testuser'@'localhost' identified by 'iamgroot';
-create user 'root'@'localhost' identified by 'iamgroot';
+-- Permisos para root (Local y Remoto)
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'iamgroot' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'iamgroot' WITH GRANT OPTION;
 
-
-grant all privileges on *.* to 'testuser'@'%';
-grant all privileges on *.* to 'testuser'@'localhost';
-grant all privileges on *.* to 'root'@'localhost';
+-- Usuario de test
+CREATE USER IF NOT EXISTS 'testuser'@'%' IDENTIFIED BY 'iamgroot';
+GRANT ALL PRIVILEGES ON *.* TO 'testuser'@'%';
 
 
 CREATE SCHEMA IF NOT EXISTS `MODEL` DEFAULT CHARACTER SET utf8 ;

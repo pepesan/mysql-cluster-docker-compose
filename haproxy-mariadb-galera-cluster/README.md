@@ -11,23 +11,14 @@ Data can be changed on all nodes, Active-Active multi-master configuration - rea
 
 1.Galera Cluster container starting 
 ```shell
-docker-compose  -f ./compose.yml up -d
+docker-compose  up -d
 ```
 
 2.Galera Cluster Creates a database user in mysql schema and app schema within the node1 container.
-* This does not work for automatic migration of sql files such as the official mariadb image when the container image is deployed.
 
- It is necessary to enter the container of node 1 and execute the volume-linked account file in advance as a shell.
+Puedo conectar al nodo 1
 ```shell
-> docker compose exec node1-mariadb /bin/bash
-> cd /docker-entrypoint-initdb.d/
-> ./migration.sh root iamgroot mysql ./create_user.sql
-```
-
-3.Migrate sql dump file from the Galilean cluster node1. 
-  
-```shell
-> ./migration.sh root iamgroot MODEL ./create_schema_table.sql
+mysql -h 127.0.0.1 -P 13306 -u root -piamgroot
 ```
 
 7.Confirm the sync state of Galera working and data migration at each node.
@@ -35,45 +26,81 @@ docker-compose  -f ./compose.yml up -d
 show status like 'wsrep_%';
 
 show status like  'wsrep_incoming_addresses';
+
+SHOW STATUS LIKE 'wsrep_cluster_size';
 ```
-
-
-#### Failover Test 
-When one of the Galera nodes fails, the rest of the nodes are blocked by the ensemble check, and when the stopped node is restarted, the data of the started node is automatically synchronized.
-
-- Node1 ~ N sequential DCL, DML, DDL input test
-- Node N stop -> nodeN-1 DCL, node N After startup, check for sync
-- node1 스탑 -> node1 grastate.dat의 safe_to_bootstrap: 1 변경, node1 기동  
-
-#### When Node1 Container Reboot
-Node1 has the wsrep new cluster creation(wsrep-new-cluster) option. 
-Node1 is started after changing the safe_to_bootstrap of 'grastate.dat 'to 1 in mariadb volume mount when starting up after stopping the container.
-
-
-```txt 
-# GALERA saved state
-version: 2.1
-uuid:    9382b31e-7de5-11e9-8653-12a8b887ac66
-seqno:   -1
-safe_to_bootstrap: 1    #<----- has to be 1 before start node1
-```
-
-
-#### When there is no DNS server in the closed network
-Add mariadb variable skip_name_resolve is On
-```yaml
-    command:
-      --wait_timeout=28800
-      --character-set-server=utf8
-      --collation-server=utf8_general_ci
-      --max-allowed-packet=512M
-      --net-buffer-length=5048576
-      --skip-name-resolve=On
-```
-
+## insertamos algo en node1
 ```shell
-show status variables like 'skip_name_resolve';
+docker exec -it node1-mariadb mysql -u root -piamgroot -D MODEL -e "INSERT INTO API (id, name, symbol, rank) VALUES ('cardano', 'Cardano', 'ADA', 10);"
 ```
+
+# confirmamos que se ha insertado en node1
+```shell
+docker exec -it node1-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
+```
+
+# confirmamos que se ha insertado en node2
+```shell
+docker exec -it node2-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
+```
+# confirmamos que se ha insertado en node3
+```shell
+docker exec -it node3-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
+```
+## Accedemos al HAProxy
+http://localhost:2999/stats
+
+Si pide usuario y contraseña, el usuario es admin y la contraseña es admin
+
+## Acceso desde el HAProxy
+```shell
+mysql -h 127.0.0.1 -P 3306 -u testuser -piamgroot -e "SELECT @@hostname;"
+```
+
+# Prueba del balanceo de carga
+```shell
+for i in {1..6}; do mysql -h 127.0.0.1 -P 3306 -u testuser -piamgroot -N -s -e "SELECT @@hostname;"; done
+```
+
+## prueba de failover (pendiente)
+Paramos el nodo
+```shell
+docker compose stop node1-mariadb
+```
+
+Probamos acceder desde el nodo 2 para mirar el estado del cluster
+```shell
+docker exec -it node2-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+```
+
++--------------------+-------+
+| Variable_name      | Value |
++--------------------+-------+
+| wsrep_cluster_size | 2     |
++--------------------+-------+
+
+## metemos un dato nuevo desde HAProxy
+```shell
+mysql -h 127.0.0.1 -P 3306 -u testuser -piamgroot -D MODEL -e "INSERT INTO API (id, name, symbol, rank) VALUES ('polkadot', 'Polkadot', 'DOT', 12);"
+```
+
+## Recuperamos el nodo
+```shell
+docker compose start node1-mariadb
+```
+
+Probamos acceder desde el nodo 2 para mirar el estado del cluster
+```shell
+docker exec -it node2-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+```
++--------------------+-------+
+| Variable_name      | Value |
++--------------------+-------+
+| wsrep_cluster_size | 2     |
++--------------------+-------+
+
+
+
 
 
 
