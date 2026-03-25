@@ -80,7 +80,7 @@ docker compose up -d node2-mariadb
 
 Desde el nodo 2, confirmamos el estado del cluster
 
-docker exec -it node2-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+docker exec -it node2-mariadb mariadb -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
 
 Modificamos el compose.yaml para cambiar la config del nodo 3
 ```yaml
@@ -99,7 +99,7 @@ docker compose up -d node3-mariadb
 
 Desde el nodo 3, confirmamos el estado del cluster
 
-docker exec -it node3-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+docker exec -it node3-mariadb mariadb -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
 
 
 Modificamos el compose.yaml para cambiar la config del nodo 1
@@ -127,12 +127,12 @@ docker compose up -d node1-mariadb
 
 Desde el nodo 1, confirmamos el estado del cluster
 
-docker exec -it node1-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+docker exec -it node1-mariadb mariadb -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
 
 
 Probamos acceder desde el nodo 2 para mirar el estado del cluster
 ```shell
-docker exec -it node2-mariadb mysql -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+docker exec -it node2-mariadb mariadb -u root -piamgroot -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
 ```
 
 +--------------------+-------+
@@ -148,15 +148,15 @@ mysql -h 127.0.0.1 -P 3306 -u testuser -piamgroot -D MODEL -e "INSERT INTO API (
 
 ## comprobamos que se ha insertado en node1
 ```shell
-docker exec -it node1-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
+docker exec -it node1-mariadb mariadb -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
 ```
 ## comprobamos que se ha insertado en node2
 ```shell
-docker exec -it node2-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
+docker exec -it node2-mariadb mariadb -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
 ```
 ## comprobamos que se ha insertado en node3
 ```shell
-docker exec -it node3-mariadb mysql -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
+docker exec -it node3-mariadb mariadb -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
 ```
 
 
