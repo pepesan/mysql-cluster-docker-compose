@@ -92,24 +92,23 @@ done
 
 ### Metemos los Datos de ejemplo 
 
-Accedemos a al nodo 1
+Accedemos a al nodo 1 y metemos datos de ejemplo
 
-docker compose exec node1 mysql -uroot -proot
-```sql
-use test;
--- Crear la tabla usuarios
-CREATE TABLE usuarios (
-id INT PRIMARY KEY AUTO_INCREMENT,
-nombre VARCHAR(50),
-edad INT,
-email VARCHAR(100) UNIQUE
+```shell
+docker compose exec -T node1 mysql -uroot -proot -e "
+CREATE DATABASE IF NOT EXISTS test;
+USE test;
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50),
+    edad INT,
+    email VARCHAR(100) UNIQUE
 );
-
--- Insertar algunos datos de muestra
-INSERT INTO usuarios (nombre, edad, email) VALUES
+INSERT IGNORE INTO usuarios (nombre, edad, email) VALUES
 ('Juan Pérez', 25, 'juan.perez@example.com'),
 ('María López', 30, 'maria.lopez@example.com'),
 ('Carlos Rodríguez', 22, 'carlos.rodriguez@example.com');
+"
 ```
 
 # Conectamos desde el HAProxy a través del puerto 3306
