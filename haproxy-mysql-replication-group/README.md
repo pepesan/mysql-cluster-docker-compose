@@ -1,6 +1,9 @@
 # Mysql Replication Group
 docker compose up -d
 
+## Comprobamos que los contenedores están levantados
+docker compose ps
+
 ## Configure node1
 docker compose exec node1 mysql -uroot -proot \
 -e "SET @@GLOBAL.group_replication_bootstrap_group=1;" \
