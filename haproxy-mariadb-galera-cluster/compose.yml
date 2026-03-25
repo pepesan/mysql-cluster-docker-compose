@@ -1,6 +1,6 @@
 services:
   node1-mariadb:
-    image: mariadb:10.11
+    image: mariadb:12.2
     hostname: node1-mariadb
     container_name: node1-mariadb
     privileged: true
@@ -24,7 +24,7 @@ services:
       - "--innodb-autoinc-lock-mode=2"
 
   node2-mariadb:
-    image: mariadb:10.11
+    image: mariadb:12.2
     hostname: node2-mariadb
     container_name: node2-mariadb
     privileged: true
@@ -47,7 +47,7 @@ services:
       - "--innodb-autoinc-lock-mode=2"
 
   node3-mariadb:
-    image: mariadb:10.11
+    image: mariadb:12.2
     hostname: node3-mariadb
     container_name: node3-mariadb
     privileged: true
