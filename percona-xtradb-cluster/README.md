@@ -5,7 +5,7 @@
 * Creado fichero config/custom.cnf de los nodos
 ### Generar certificados
 ```shell
-docker run --name pxc-cert --rm \                          
+docker run --name pxc-cert --rm \
 -v ./cert:/cert percona/percona-xtradb-cluster:8.0 \
 bash -c "mysql_ssl_rsa_setup && cp /var/lib/mysql/*pem /cert"
 ```
@@ -20,16 +20,6 @@ docker run -d \
 -v ./config:/etc/percona-xtradb-cluster.conf.d \
 percona/percona-xtradb-cluster:8.0
 
-#### Montamos el segundo nodo
-docker run -d \
--e MYSQL_ROOT_PASSWORD=test1234# \
--e CLUSTER_NAME=pxc-cluster1 \
--e CLUSTER_JOIN=pxc-node1 \
---name=pxc-node2 \
---net=pxc-network \
--v ./cert:/cert \
--v ./config:/etc/percona-xtradb-cluster.conf.d \
-percona/percona-xtradb-cluster:8.0
 #### Montamos el segundo nodo
 docker run -d \
 -e MYSQL_ROOT_PASSWORD=test1234# \

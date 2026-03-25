@@ -1,48 +1,88 @@
-version: "3.3"
 services:
+  # 1. Generador de certificados (Init Container)
+  pxc-certs-gen:
+    image: percona/percona-xtradb-cluster:8.0
+    hostname: pxc-certs-gen
+    container_name: pxc-certs-gen
+    user: root
+    volumes:
+      - ./cert:/cert
+    # Ejecuta el setup y cambia permisos para que los nodos puedan leerlos
+    command: >
+      bash -c "mysql_ssl_rsa_setup --datadir=/cert 
+      && chown -R 1001:1001 /cert/*.pem 
+      && chmod 644 /cert/*.pem"
   pxc-node1:
-    environment:
-      - MYSQL_ROOT_PASSWORD=test1234#
-      - CLUSTER_NAME=pxc-cluster1
+    image: percona/percona-xtradb-cluster:8.0
+    hostname: pxc-node1
     container_name: pxc-node1
-    volumes:
-      - ./cert:/cert
-      - ./config:/etc/percona-xtradb-cluster.conf.d
-    image: percona/percona-xtradb-cluster:8.0
-    healthcheck:
-      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
-      interval: 2s
-      retries: 20
-  pxc-node2:
     environment:
       - MYSQL_ROOT_PASSWORD=test1234#
       - CLUSTER_NAME=pxc-cluster1
-      - CLUSTER_JOIN=pxc-node2
-    container_name: pxc-node2
+    ports:
+      - "3307:3306"
     volumes:
       - ./cert:/cert
       - ./config:/etc/percona-xtradb-cluster.conf.d
-    image: percona/percona-xtradb-cluster:8.0
-    depends_on:
-      - pxc-node1
+#    depends_on:
+#      pxc-certs-gen:
+#        condition: service_completed_successfully
     healthcheck:
       test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
       interval: 2s
       retries: 20
-  pxc-node3:
+
+  pxc-node2:
+    image: percona/percona-xtradb-cluster:8.0
+    container_name: pxc-node2
+    hostname: pxc-node2
     environment:
       - MYSQL_ROOT_PASSWORD=test1234#
       - CLUSTER_NAME=pxc-cluster1
       - CLUSTER_JOIN=pxc-node1
-    container_name: pxc-node3
     volumes:
       - ./cert:/cert
       - ./config:/etc/percona-xtradb-cluster.conf.d
-    image: percona/percona-xtradb-cluster:8.0
-    depends_on:
-      - pxc-node1
-      - pxc-node2
+#    depends_on:
+#      pxc-node1:
+#        condition: service_healthy
+#      pxc-certs-gen:
+#        condition: service_completed_successfully
     healthcheck:
       test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
       interval: 2s
       retries: 20
+
+  pxc-node3:
+    image: percona/percona-xtradb-cluster:8.0
+    container_name: pxc-node3
+    hostname: pxc-node3
+    environment:
+      - MYSQL_ROOT_PASSWORD=test1234#
+      - CLUSTER_NAME=pxc-cluster1
+      - CLUSTER_JOIN=pxc-node1
+    volumes:
+      - ./cert:/cert
+      - ./config:/etc/percona-xtradb-cluster.conf.d
+#    depends_on:
+#      pxc-node1:
+#        condition: service_healthy
+#      pxc-certs-gen:
+#        condition: service_completed_successfully
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20
+
+  pxc-lb:
+    image: haproxy:latest
+    container_name: pxc-lb
+    ports:
+      - "3306:3306"    # Puerto de entrada para tu app
+      - "2999:2999"    # Panel de estadísticas (opcional)
+    volumes:
+      - ./haproxy:/usr/local/etc/haproxy:ro
+    depends_on:
+      - pxc-node1
+      - pxc-node2
+      - pxc-node3
