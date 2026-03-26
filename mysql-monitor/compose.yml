@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mysql:latest
+    container_name: mysql8
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./data:/var/lib/mysql"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=user
+
+  exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: exporter
+    restart: always
+    ports:
+      - "9104:9104"
+    command:
+      - "--config.my-cnf=/etc/mysqld-exporter/my.cnf"
+      - "--collect.global_status"
+      - "--collect.global_variables"
+    volumes:
+      - "./config/config.my-cnf:/etc/mysqld-exporter/my.cnf:ro"
+    depends_on:
+      - db
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+    depends_on:
+      - exporter
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: always
+    ports:
+      - "3001:3000"
