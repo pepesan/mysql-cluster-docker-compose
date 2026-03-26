@@ -158,6 +158,10 @@ docker exec -it node2-mariadb mariadb -u root -piamgroot -D MODEL -e "SELECT * F
 ```shell
 docker exec -it node3-mariadb mariadb -u root -piamgroot -D MODEL -e "SELECT * FROM API;"
 ```
+## consultamos desde el HAProxy para confirmar que se ha insertado
+```shell
+for i in {1..6}; do mysql -h 127.0.0.1 -P 3306 -u testuser -piamgroot -N -s -e "SELECT @@hostname;"; done
+```
 
 
 
