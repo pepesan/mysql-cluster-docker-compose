@@ -16,6 +16,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=test1234#
       - CLUSTER_NAME=pxc-cluster1
+      # - CLUSTER_JOIN=pxc-node2,pxc-node3
     ports:
       - "3307:3306"
     volumes:
