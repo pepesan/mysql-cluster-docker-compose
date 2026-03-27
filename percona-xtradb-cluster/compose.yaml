@@ -22,9 +22,6 @@ services:
     volumes:
       - ./cert:/cert
       - ./config:/etc/percona-xtradb-cluster.conf.d
-#    depends_on:
-#      pxc-certs-gen:
-#        condition: service_completed_successfully
     healthcheck:
       test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
       interval: 2s
@@ -38,15 +35,10 @@ services:
       - MYSQL_ROOT_PASSWORD=test1234#
       - CLUSTER_NAME=pxc-cluster1
       - CLUSTER_JOIN=pxc-node1
-      # - CLUSTER_JOIN=pxc-node1,pxc-node2,pxc-node3
+      #- CLUSTER_JOIN=pxc-node1,pxc-node2,pxc-node3
     volumes:
       - ./cert:/cert
       - ./config:/etc/percona-xtradb-cluster.conf.d
-#    depends_on:
-#      pxc-node1:
-#        condition: service_healthy
-#      pxc-certs-gen:
-#        condition: service_completed_successfully
     healthcheck:
       test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
       interval: 2s
@@ -60,15 +52,10 @@ services:
       - MYSQL_ROOT_PASSWORD=test1234#
       - CLUSTER_NAME=pxc-cluster1
       - CLUSTER_JOIN=pxc-node1
-      # - CLUSTER_JOIN=pxc-node1,pxc-node2,pxc-node3
+      #- CLUSTER_JOIN=pxc-node1,pxc-node2,pxc-node3
     volumes:
       - ./cert:/cert
       - ./config:/etc/percona-xtradb-cluster.conf.d
-#    depends_on:
-#      pxc-node1:
-#        condition: service_healthy
-#      pxc-certs-gen:
-#        condition: service_completed_successfully
     healthcheck:
       test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
       interval: 2s
