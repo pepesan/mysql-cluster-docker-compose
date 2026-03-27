@@ -16,7 +16,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=test1234#
       - CLUSTER_NAME=pxc-cluster1
-      # - CLUSTER_JOIN=pxc-node2,pxc-node3
+      #- CLUSTER_JOIN=pxc-node2,pxc-node3
     ports:
       - "3307:3306"
     volumes:
@@ -38,6 +38,7 @@ services:
       - MYSQL_ROOT_PASSWORD=test1234#
       - CLUSTER_NAME=pxc-cluster1
       - CLUSTER_JOIN=pxc-node1
+      # - CLUSTER_JOIN=pxc-node1,pxc-node2,pxc-node3
     volumes:
       - ./cert:/cert
       - ./config:/etc/percona-xtradb-cluster.conf.d
@@ -59,6 +60,7 @@ services:
       - MYSQL_ROOT_PASSWORD=test1234#
       - CLUSTER_NAME=pxc-cluster1
       - CLUSTER_JOIN=pxc-node1
+      # - CLUSTER_JOIN=pxc-node1,pxc-node2,pxc-node3
     volumes:
       - ./cert:/cert
       - ./config:/etc/percona-xtradb-cluster.conf.d
