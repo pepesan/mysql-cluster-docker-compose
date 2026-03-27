@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-open http://localhost:3000
+open http://localhost:3001
 
 # login
 # admin/admin

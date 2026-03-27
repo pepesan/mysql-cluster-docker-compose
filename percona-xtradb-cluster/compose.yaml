@@ -1,19 +1,16 @@
 services:
-  # 1. Generador de certificados (Init Container)
   pxc-certs-gen:
-    image: percona/percona-xtradb-cluster:8.0
+    image: percona/percona-xtradb-cluster:8.4
     hostname: pxc-certs-gen
     container_name: pxc-certs-gen
     user: root
     volumes:
       - ./cert:/cert
-    # Ejecuta el setup y cambia permisos para que los nodos puedan leerlos
-    command: >
-      bash -c "mysql_ssl_rsa_setup --datadir=/cert 
-      && chown -R 1001:1001 /cert/*.pem 
-      && chmod 644 /cert/*.pem"
+      - ./scripts/create-certs.sh:/create-certs.sh:ro
+    command: ["/bin/bash", "/create-certs.sh"]
+
   pxc-node1:
-    image: percona/percona-xtradb-cluster:8.0
+    image: percona/percona-xtradb-cluster:8.4
     hostname: pxc-node1
     container_name: pxc-node1
     environment:
@@ -33,7 +30,7 @@ services:
       retries: 20
 
   pxc-node2:
-    image: percona/percona-xtradb-cluster:8.0
+    image: percona/percona-xtradb-cluster:8.4
     container_name: pxc-node2
     hostname: pxc-node2
     environment:
@@ -54,7 +51,7 @@ services:
       retries: 20
 
   pxc-node3:
-    image: percona/percona-xtradb-cluster:8.0
+    image: percona/percona-xtradb-cluster:8.4
     container_name: pxc-node3
     hostname: pxc-node3
     environment:
